@@ -1,4 +1,7 @@
+# coding=utf-8
+
 import os
+from sys import exit
 from collections import OrderedDict
 from random import randint, uniform
 from time import sleep
@@ -79,10 +82,11 @@ class ArknightsHelper(object):
         :return:
         """
         global enable_api
-        self.__ocr_check(STORAGE_PATH + "OCR_TEST_1.png", SCREEN_SHOOT_SAVE_PATH + "ocr_test_result", "--psm 7",
+        self.__ocr_check(os.path.join(STORAGE_PATH, "OCR_TEST_1.png"), os.path.join(SCREEN_SHOOT_SAVE_PATH, "ocr_test_result"), "--psm 7",
                          change_image=False)
+
         try:
-            with open(SCREEN_SHOOT_SAVE_PATH + "ocr_test_result.txt", 'r', encoding="utf8") as f:
+            with open(os.path.join(SCREEN_SHOOT_SAVE_PATH, "ocr_test_result.txt"), 'r') as f:
                 tmp = f.read()
                 test_1 = int(tmp.split("/")[0])
                 if test_1 == 51:
@@ -138,7 +142,7 @@ class ArknightsHelper(object):
         :return:
         """
         self.__check_apk_info_active()
-        with open(STORAGE_PATH + "current.txt", 'r', encoding='utf8') as f:
+        with open(STORAGE_PATH + "current.txt", 'r') as f:
             if ArkNights_PACKAGE_NAME in f.read():
                 self.__is_game_active = True
             else:
@@ -273,17 +277,17 @@ class ArknightsHelper(object):
                 level_up_num = 0
                 # 检测是否启动ocr检查升级情况
                 if enable_ocr_check_update:
-                    self.__ocr_check(SCREEN_SHOOT_SAVE_PATH + "level_up_real_time.png",
-                                     SCREEN_SHOOT_SAVE_PATH + "1",
+                    self.__ocr_check(os.path.join(SCREEN_SHOOT_SAVE_PATH, "level_up_real_time.png"),
+                                     os.path.join(SCREEN_SHOOT_SAVE_PATH, "lvlup"),
                                      "--psm 7 -l chi_sim")
                     level_up_text = "等级提升"
-                    f = open(SCREEN_SHOOT_SAVE_PATH + "1.txt", 'r', encoding="utf8")
+                    f = open(os.path.join(SCREEN_SHOOT_SAVE_PATH, "lvlup.txt"), 'r')
                     tmp = f.readline()
                     if level_up_text in tmp:
                         level_up_signal = True
                 else:
-                    level_up_num = self.adb.img_difference(img1=SCREEN_SHOOT_SAVE_PATH + "level_up_real_time.png",
-                                                           img2=STORAGE_PATH + "BATTLE_INFO_BATTLE_END_LEVEL_UP.png")
+                    level_up_num = self.adb.img_difference(img1=os.path.join(SCREEN_SHOOT_SAVE_PATH, "level_up_real_time.png"),
+                                                           img2=os.path.join(STORAGE_PATH, "BATTLE_INFO_BATTLE_END_LEVEL_UP.png"))
                 if level_up_num > .7 or level_up_signal:
                     battle_end_signal = True
                     self.__wait(SMALL_WAIT, MANLIKE_FLAG=True)
@@ -306,18 +310,19 @@ class ArknightsHelper(object):
                     end_signal = False
 
                     if enable_ocr_check_end:
-                        self.__ocr_check(SCREEN_SHOOT_SAVE_PATH + "battle_end.png",
-                                         SCREEN_SHOOT_SAVE_PATH + "1",
+                        self.__ocr_check(os.path.join(SCREEN_SHOOT_SAVE_PATH, "battle_end.png"),
+                                         os.path.join(SCREEN_SHOOT_SAVE_PATH, "battle_end"),
                                          "--psm 7 -l chi_sim")
-                        end_text = "结束"
-                        f = open(SCREEN_SHOOT_SAVE_PATH + "1.txt", 'r', encoding="utf8")
+                        end_text_1 = "结"
+                        end_text_2 = "束"
+                        f = open(os.path.join(SCREEN_SHOOT_SAVE_PATH, "battle_end.txt"), 'r')
                         tmp = f.readline()
-                        if end_text in tmp:
+                        if end_text_1 in tmp and end_text_2 in tmp:
                             end_signal = True
                     else:
                         end_num = self.adb.img_difference(
-                            img1=SCREEN_SHOOT_SAVE_PATH + "battle_end.png",
-                            img2=STORAGE_PATH + "BATTLE_INFO_BATTLE_END_TRUE.png")
+                            img1=os.path.join(SCREEN_SHOOT_SAVE_PATH, "battle_end.png"),
+                            img2=os.path.join(STORAGE_PATH, "BATTLE_INFO_BATTLE_END_TRUE.png"))
 
                     if end_num >= 0.8 or end_signal:
                         battle_end_signal = True
@@ -360,12 +365,12 @@ class ArknightsHelper(object):
             'is_setting.png', MAP_LOCATION['INDEX_INFO_IS_SETTING']
         )
         if enable_ocr_debugger:
-            self.__ocr_check(SCREEN_SHOOT_SAVE_PATH + "is_setting.png",
-                             SCREEN_SHOOT_SAVE_PATH + "1",
+            self.__ocr_check(os.path.join(SCREEN_SHOOT_SAVE_PATH, "is_setting.png"),
+                             os.path.join(SCREEN_SHOOT_SAVE_PATH, "is_setting"),
                              "--psm 7 -l chi_sim",
                              change_image=False)
             end_text = "设置"
-            f = open(SCREEN_SHOOT_SAVE_PATH + "1.txt", 'r', encoding="utf8")
+            f = open(os.path.join(SCREEN_SHOOT_SAVE_PATH, "is_setting.txt"), 'r')
             tmp = f.readline()
             if end_text in tmp:
                 return True
@@ -373,8 +378,8 @@ class ArknightsHelper(object):
                 return False
         else:
             if self.adb.img_difference(
-                    img1=STORAGE_PATH + "INDEX_INFO_IS_SETTING.png",
-                    img2=SCREEN_SHOOT_SAVE_PATH + "is_setting.png"
+                    img1=os.path.join(STORAGE_PATH, "INDEX_INFO_IS_SETTING.png"),
+                    img2=os.path.join(SCREEN_SHOOT_SAVE_PATH, "is_setting.png")
             ) > .85:
                 return True
             else:
@@ -459,8 +464,8 @@ class ArknightsHelper(object):
     def set_ai_commander(self):
         self.adb.get_screen_shoot('is_ai.png', MAP_LOCATION['BATTLE_CLICK_AI_COMMANDER'])
         if self.adb.img_difference(
-                SCREEN_SHOOT_SAVE_PATH + "is_ai.png",
-                STORAGE_PATH + "BATTLE_CLICK_AI_COMMANDER_TRUE.png"
+                os.path.join(SCREEN_SHOOT_SAVE_PATH, "is_ai.png"),
+                os.path.join(STORAGE_PATH, "BATTLE_CLICK_AI_COMMANDER_TRUE.png")
         ) <= 0.8:
             self.shell_color.helper_text("[-] 代理指挥未设置，设置代理指挥")
             self.adb.get_mouse_click(
@@ -480,30 +485,33 @@ class ArknightsHelper(object):
             file_name="strength.png", screen_range=MAP_LOCATION["BATTLE_INFO_STRENGTH_REMAIN"]
         )
 
-        self.__ocr_check(SCREEN_SHOOT_SAVE_PATH + "strength.png", SCREEN_SHOOT_SAVE_PATH + "1", "--psm 7")
-        with open(SCREEN_SHOOT_SAVE_PATH + "1.txt", 'r', encoding="utf8") as f:
+        self.__ocr_check(os.path.join(SCREEN_SHOOT_SAVE_PATH, "strength.png"), os.path.join(SCREEN_SHOOT_SAVE_PATH, "lizhi"), "--psm 7")
+        with open(os.path.join(SCREEN_SHOOT_SAVE_PATH, "lizhi.txt"), 'r') as f:
             tmp = f.read()  #
-            try:
-                self.CURRENT_STRENGTH = int(tmp.split("/")[0])
-                self.shell_color.helper_text("[+] 理智剩余 {}".format(self.CURRENT_STRENGTH))
-                return True
-            except Exception as e:
-                self.shell_color.failure_text("[!] {}".format(e))
-                return False
+            self.CURRENT_STRENGTH = int(tmp.split("/")[0])
+            self.shell_color.helper_text("[+] 理智剩余 {}".format(self.CURRENT_STRENGTH))
+            return True
+
+            # try:
+                # self.CURRENT_STRENGTH = int(tmp.split("/")[0])
+                # self.shell_color.helper_text("[+] 理智剩余 {}".format(self.CURRENT_STRENGTH))
+                # return True
+            # except Exception as e:
+                # self.shell_color.failure_text("[!] {}".format(e))
+                # return False
 
     def __check_current_strength_debug(self):
         # 查看是否在素材页面
         self.shell_color.helper_text("[+] 启动自修复模块,检查是否停留在素材页面")
-        self.adb.get_screen_shoot(
-            file_name="debug.png",
+        self.adb.get_screen_shoot( file_name="debug.png",
             screen_range=MAP_LOCATION['BATTLE_DEBUG_WHEN_OCR_ERROR']
         )
         if enable_ocr_debugger:
-            self.__ocr_check(SCREEN_SHOOT_SAVE_PATH + "debug.png",
-                             SCREEN_SHOOT_SAVE_PATH + "debug",
+            self.__ocr_check(os.path.join(SCREEN_SHOOT_SAVE_PATH, "debug.png"),
+                             os.path.join(SCREEN_SHOOT_SAVE_PATH, "debug"),
                              "--psm 7 -l chi_sim")
             end_text = "首次掉落"
-            f = open(SCREEN_SHOOT_SAVE_PATH + "debug.txt", 'r', encoding="utf8")
+            f = open(os.path.join(SCREEN_SHOOT_SAVE_PATH, "debug.txt"), 'r')
             tmp = f.readline()
             if end_text in tmp:
                 self.shell_color.helper_text("[$] 检测 BUG 成功，系统停留在素材页面，请求返回...")
@@ -513,8 +521,8 @@ class ArknightsHelper(object):
                 self.shell_color.failure_text("[-] 检测 BUG 失败，系统将继续执行任务")
         else:
             if self.adb.img_difference(
-                    img1=SCREEN_SHOOT_SAVE_PATH + "debug.png",
-                    img2=STORAGE_PATH + "BATTLE_DEBUG_CHECK_LOCATION_IN_SUCAI.png"
+                    img1=os.path.join(SCREEN_SHOOT_SAVE_PATH, "debug.png"),
+                    img2=os.path.join(STORAGE_PATH, "BATTLE_DEBUG_CHECK_LOCATION_IN_SUCAI.png")
             ) > 0.75:
                 self.shell_color.helper_text("[$] 检测 BUG 成功，系统停留在素材页面，请求返回...")
                 self.adb.get_mouse_click(CLICK_LOCATION['MAIN_RETURN_INDEX'], FLAG=None)
@@ -529,18 +537,21 @@ class ArknightsHelper(object):
                 file_name="strength.png", screen_range=MAP_LOCATION["BATTLE_INFO_STRENGTH_REMAIN"]
             )
 
-            self.__ocr_check(SCREEN_SHOOT_SAVE_PATH + "strength.png", SCREEN_SHOOT_SAVE_PATH + "1", "--psm 7")
-            with open(SCREEN_SHOOT_SAVE_PATH + "1.txt", 'r', encoding="utf8") as f:
+            self.__ocr_check(os.path.join(SCREEN_SHOOT_SAVE_PATH, "strength.png"), os.path.join(SCREEN_SHOOT_SAVE_PATH, "lizhi"), "--psm 7")
+            with open(os.path.join(SCREEN_SHOOT_SAVE_PATH, "lizhi.txt"), 'r') as f:
                 tmp = f.read()  #
-                try:
-                    self.CURRENT_STRENGTH = int(tmp.split("/")[0])
-                    self.shell_color.helper_text("[+] 理智剩余 {}".format(self.CURRENT_STRENGTH))
-                except Exception as e:
-                    self.shell_color.failure_text("[!] {}".format(e))
-                    if self_fix:
-                        self.__check_current_strength_debug()
-                    else:
-                        self.CURRENT_STRENGTH -= LIZHI_CONSUME[c_id]
+                self.CURRENT_STRENGTH = int(tmp.split("/")[0])
+                self.shell_color.helper_text("[+] 理智剩余 {}".format(self.CURRENT_STRENGTH))
+
+#                 try:
+                    # self.CURRENT_STRENGTH = int(tmp.split("/")[0])
+                    # self.shell_color.helper_text("[+] 理智剩余 {}".format(self.CURRENT_STRENGTH))
+                # except Exception as e:
+                    # self.shell_color.failure_text("[!] {}".format(e))
+                    # if self_fix:
+                        # self.__check_current_strength_debug()
+                    # else:
+                        # self.CURRENT_STRENGTH -= LIZHI_CONSUME[c_id]
         else:
             self.CURRENT_STRENGTH -= LIZHI_CONSUME[c_id]
             self.shell_color.warning_text("[*] OCR 模块未装载，系统将直接计算理智值")

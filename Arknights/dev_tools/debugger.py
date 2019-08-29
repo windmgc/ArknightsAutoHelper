@@ -1,3 +1,5 @@
+# coding=utf-8
+
 from Arknights.base import ArknightsHelper
 from Arknights.click_location import *
 

@@ -1,3 +1,4 @@
+# coding=utf-8
 import os
 from config import ADB_ROOT, ADB_HOST, SCREEN_SHOOT_SAVE_PATH, ShellColor
 from PIL import Image
@@ -8,7 +9,7 @@ from random import randint
 
 class ADBShell(object):
     def __init__(self, adb_host=ADB_HOST):
-        self.SCREEN_SHOOT_SAVE_PATH = os.path.abspath(SCREEN_SHOOT_SAVE_PATH) + "\\"
+        self.SCREEN_SHOOT_SAVE_PATH = os.path.abspath(SCREEN_SHOOT_SAVE_PATH)
         # os.chdir(ADB_ROOT)
         self.ADB_ROOT = ADB_ROOT
         self.ADB_HOST = adb_host
@@ -17,13 +18,14 @@ class ADBShell(object):
         self.__adb_tools = ""
         self.__adb_command = ""
         self.DEVICE_NAME = self.__adb_device_name_detector()
-        self.__command = "\"" + self.ADB_ROOT + "\\adb.exe\" -s " + self.DEVICE_NAME + " {tools} {command} "
+        # self.__command = "\"" + self.ADB_ROOT + "\\adb.exe\" -s " + self.DEVICE_NAME + " {tools} {command} "
+        self.__command = "\"" + self.ADB_ROOT + "/adb\" -s " + self.DEVICE_NAME + " {tools} {command} "
         # 命令格式 "D:\Program Files\Nox\bin\adb.exe" -s 127.0.0.1:62001 shell am start ...
         # Linux 和 Mac 机器我不太清楚咋整. 不过好像大家目前还没这个需求
         # self.__adb_connect()
 
     def __adb_device_name_detector(self):
-        self.__command = "\"" + self.ADB_ROOT + "\\adb.exe\" {tools} {command}"
+        self.__command = "\"" + self.ADB_ROOT + "/adb\" {tools} {command}"
         self.__adb_tools = "devices"
         content = self.run_cmd(DEBUG_LEVEL=1).strip().split("\n")
         content.pop(0)
@@ -123,7 +125,7 @@ class ADBShell(object):
         return self.__buffer[0:n]
 
     def get_sub_screen(self, file_name, screen_range):
-        i = Image.open(self.SCREEN_SHOOT_SAVE_PATH + file_name)
+        i = Image.open(os.path.join(self.SCREEN_SHOOT_SAVE_PATH, file_name))
         i.crop(
             (
                 screen_range[0][0],
@@ -131,7 +133,7 @@ class ADBShell(object):
                 screen_range[0][0] + screen_range[1][0],
                 screen_range[0][1] + screen_range[1][1]
             )
-        ).save(self.SCREEN_SHOOT_SAVE_PATH + file_name)
+        ).save(os.path.join(self.SCREEN_SHOOT_SAVE_PATH, file_name))
 
     def get_screen_shoot(self, file_name="1.png", screen_range=None):
         sleep(1)
@@ -141,12 +143,12 @@ class ADBShell(object):
         self.__adb_command = "/system/bin/screencap -p /sdcard/screenshot.png"
         self.run_cmd(1)
         self.__adb_tools = "pull"
-        self.__adb_command = "/sdcard/screenshot.png \"{}\"".format(self.SCREEN_SHOOT_SAVE_PATH + file_name)
+        self.__adb_command = "/sdcard/screenshot.png \"{}\"".format(os.path.join(self.SCREEN_SHOOT_SAVE_PATH, file_name))
         self.run_cmd(1)
         self.__adb_tools = "shell"
         self.__adb_command = "rm /sdcard/screen.png"
         self.run_cmd(1)
-        # print(self.SCREEN_SHOOT_SAVE_PATH + file_name)
+        # print(os.path.join(self.SCREEN_SHOOT_SAVE_PATH, file_name))
         if screen_range.__len__() == 2:
             self.get_sub_screen(file_name, screen_range)
 
@@ -182,8 +184,8 @@ class ADBShell(object):
     def mv_file(self, file_name, file_path="/sdcard/", RM=False):
         self.__adb_tools = "pull"
         self.__adb_command = "{} {}".format(
-            file_path + file_name,
-            SCREEN_SHOOT_SAVE_PATH + file_name
+            os.path.join(file_path, file_name),
+            os.path.join(SCREEN_SHOOT_SAVE_PATH, file_name)
         )
         self.run_cmd(DEBUG_LEVEL=0)
         if RM:

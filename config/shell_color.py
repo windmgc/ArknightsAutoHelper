@@ -1,3 +1,5 @@
+# coding=utf-8
+
 class ShellColor(object):
     def __init__(self):
         self.H_HEADER = '\033[95m'

@@ -1,4 +1,6 @@
-from os import system
+# coding=utf-8
+
+import os
 
 from PIL import Image
 
@@ -18,9 +20,8 @@ def binarization_image(filepath, threshold=175):
     """
     # 这里给二值化前的图片留个底，确认二值化异常的原因
     if enable_api is False:
-        system(
-            'copy {} {}'.format(filepath,
-                                filepath + ".debug backup.png"))
+        os.system(
+            'cp {} {}'.format(filepath, filepath + ".debug"))
     picture = Image.open(filepath)
     _L_form = picture.convert('L')
     table = []
