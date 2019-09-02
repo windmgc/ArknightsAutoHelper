@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import os
+from sys import exit
 from collections import OrderedDict
 from random import randint, uniform
 from time import sleep
@@ -102,12 +103,12 @@ SECRET_KEY\t{secret_key}
                       current_strength=None):  # 如果不可用时用于初始化的理智值
         self.shell_log.debug_text("base.is_ocr_active")
         global enable_baidu_api
-        self.__ocr_check(STORAGE_PATH + "OCR_TEST_1.png",
-                         SCREEN_SHOOT_SAVE_PATH + "ocr_test_result", "--psm 7",
+        self.__ocr_check(os.path.join(STORAGE_PATH, "OCR_TEST_1.png"),
+                         os.path.join(SCREEN_SHOOT_SAVE_PATH, "ocr_test_result"), "--psm 7",
                          change_image=False)
         try:
-            with open(SCREEN_SHOOT_SAVE_PATH + "ocr_test_result.txt",
-                      "r", encoding="utf8") as f:
+            with open(os.path.join(SCREEN_SHOOT_SAVE_PATH, "ocr_test_result.txt"),
+                      "r") as f:
                 tmp = f.read()
                 test_1 = int(tmp.split("/")[0])
                 if test_1 == 51:
@@ -144,14 +145,14 @@ SECRET_KEY\t{secret_key}
     def __check_apk_info_active(self):
         self.adb.ch_tools("shell")
         self.adb.ch_abd_command("dumpsys window windows | findstr \"Current\" > {}".format(
-            STORAGE_PATH + "package.txt"))
+            os.path.join(STORAGE_PATH, "package.txt")))
         self.adb.run_cmd(DEBUG_LEVEL=0)
 
     def check_game_active(self):  # 启动游戏 需要手动调用
         self.shell_log.debug_text("base.check_game_active")
         self.__check_apk_info_active()
         self.shell_log.debug_text("正在尝试启动游戏")
-        with open(STORAGE_PATH + "current.txt", "r", encoding="utf8") as f:
+        with open(os.path.join(STORAGE_PATH, "current.txt"), "r") as f:
             if ArkNights_PACKAGE_NAME in f.read():
                 self.__is_game_active = True
                 self.shell_log.debug_text("游戏已启动")
@@ -265,21 +266,21 @@ SECRET_KEY\t{secret_key}
                 # 检查升级情况
                 if enable_ocr_check_update:
                     self.__ocr_check(
-                        SCREEN_SHOOT_SAVE_PATH + "level_up_real_time.png",
-                        SCREEN_SHOOT_SAVE_PATH + "1",
+                        os.path.join(SCREEN_SHOOT_SAVE_PATH, "level_up_real_time.png"),
+                        os.path.join(SCREEN_SHOOT_SAVE_PATH, "1"),
                         "--psm 7 -l chi_sim"
                     )
                     level_up_text = "提升"
-                    f = open(SCREEN_SHOOT_SAVE_PATH + "1.txt",
-                             "r", encoding="utf8")
+                    f = open(os.path.join(SCREEN_SHOOT_SAVE_PATH, "1.txt"),
+                             "r")
                     tmp = f.readline()
                     tmp = tmp.replace(' ', '')
                     self.shell_log.debug_text("OCR 识别结果: {}".format(tmp))
                     level_up_signal = level_up_text in tmp
                 else:
                     level_up_signal = self.adb.img_difference(
-                        img1=SCREEN_SHOOT_SAVE_PATH + "level_up_real_time.png",
-                        img2=STORAGE_PATH + "BATTLE_INFO_BATTLE_END_LEVEL_UP.png"
+                        img1=os.path.join(SCREEN_SHOOT_SAVE_PATH, "level_up_real_time.png"),
+                        img2=os.path.join(STORAGE_PATH, "BATTLE_INFO_BATTLE_END_LEVEL_UP.png")
                     ) > .7
                 if level_up_signal:
                     battle_end_signal = True
@@ -298,21 +299,21 @@ SECRET_KEY\t{secret_key}
                     end_signal = False
                     if enable_ocr_check_end:
                         self.__ocr_check(
-                            SCREEN_SHOOT_SAVE_PATH + "battle_end.png",
-                            SCREEN_SHOOT_SAVE_PATH + "1",
+                            os.path.join(SCREEN_SHOOT_SAVE_PATH, "battle_end.png"),
+                            os.path.join(SCREEN_SHOOT_SAVE_PATH, "1"),
                             "--psm 7 -l chi_sim"
                         )
                         end_text = "结束"
-                        f = open(SCREEN_SHOOT_SAVE_PATH + "1.txt",
-                                 "r", encoding="utf8")
+                        f = open(os.path.join(SCREEN_SHOOT_SAVE_PATH, "1.txt"),
+                                 "r")
                         tmp = f.readline()
                         tmp = tmp.replace(' ', '')
                         self.shell_log.debug_text("OCR 识别结果: {}".format(tmp))
                         end_signal = end_text in tmp
                     else:
                         end_signal = self.adb.img_difference(
-                            img1=SCREEN_SHOOT_SAVE_PATH + "battle_end.png",
-                            img2=STORAGE_PATH + "BATTLE_INFO_BATTLE_END_TRUE.png"
+                            img1=os.path.join(SCREEN_SHOOT_SAVE_PATH, "battle_end.png"),
+                            img2=os.path.join(STORAGE_PATH, "BATTLE_INFO_BATTLE_END_TRUE.png")
                         ) > .7
                     if end_signal:
                         battle_end_signal = True
@@ -348,21 +349,21 @@ SECRET_KEY\t{secret_key}
         )
         if enable_ocr_debugger:
             self.__ocr_check(
-                SCREEN_SHOOT_SAVE_PATH + "is_setting.png",
-                SCREEN_SHOOT_SAVE_PATH + "1",
+                os.path.join(SCREEN_SHOOT_SAVE_PATH, "is_setting.png"),
+                os.path.join(SCREEN_SHOOT_SAVE_PATH, "1"),
                 "--psm 7 -l chi_sim",
                 change_image=False
             )
             end_text = "设置"
-            f = open(SCREEN_SHOOT_SAVE_PATH + "1.txt", "r", encoding="utf8")
+            f = open(os.path.join(SCREEN_SHOOT_SAVE_PATH, "1.txt"), "r")
             tmp = f.readline()
             tmp = tmp.replace(' ', '')
             self.shell_log.debug_text("OCR 识别结果: {}".format(tmp))
             return end_text in tmp
         else:
             return self.adb.img_difference(
-                img1=STORAGE_PATH + "INDEX_INFO_IS_SETTING.png",
-                img2=SCREEN_SHOOT_SAVE_PATH + "is_setting.png"
+                img1=os.path.join(STORAGE_PATH, "INDEX_INFO_IS_SETTING.png"),
+                img2=os.path.join(SCREEN_SHOOT_SAVE_PATH, "is_setting.png")
             ) > .85
 
     def __check_is_on_notice(self):  # 检查是否有公告，True为是
@@ -373,21 +374,21 @@ SECRET_KEY\t{secret_key}
         )
         if enable_ocr_debugger:
             self.__ocr_check(
-                SCREEN_SHOOT_SAVE_PATH + "is_notice.png",
-                SCREEN_SHOOT_SAVE_PATH + "1",
+                os.path.join(SCREEN_SHOOT_SAVE_PATH, "is_notice.png"),
+                os.path.join(SCREEN_SHOOT_SAVE_PATH, "1"),
                 "--psm 7 -l chi_sim",
                 change_image=False
             )
             end_text = "活动公告"
-            f = open(SCREEN_SHOOT_SAVE_PATH + "1.txt", "r", encoding="utf8")
+            f = open(os.path.join(SCREEN_SHOOT_SAVE_PATH, "1.txt"), "r")
             tmp = f.readline()
             tmp = tmp.replace(' ', '')
             self.shell_log.debug_text("OCR 识别结果: {}".format(tmp))
             return end_text in tmp
         else:
             return self.adb.img_difference(
-                img1=STORAGE_PATH + "INDEX_INFO_IS_NOTICE.png",
-                img2=SCREEN_SHOOT_SAVE_PATH + "is_notice.png"
+                img1=os.path.join(STORAGE_PATH, "INDEX_INFO_IS_NOTICE.png"),
+                img2=os.path.join(SCREEN_SHOOT_SAVE_PATH, "is_notice.png")
             ) > .85
 
     def back_to_main(self):  # 回到主页
@@ -407,8 +408,8 @@ SECRET_KEY\t{secret_key}
                 screen_range=MAP_LOCATION['INDEX_INFO_IS_RETURN']
             )
             if self.adb.img_difference(
-                    img1=STORAGE_PATH + "INDEX_INFO_IS_RETURN.png",
-                    img2=SCREEN_SHOOT_SAVE_PATH + "is_return.png"
+                    img1=os.path.join(STORAGE_PATH, "INDEX_INFO_IS_RETURN.png"),
+                    img2=os.path.join(SCREEN_SHOOT_SAVE_PATH, "is_return.png")
             ) > .75:
                 self.shell_log.helper_text("未回到主页，点击返回")
                 self.mouse_click(CLICK_LOCATION['MAIN_RETURN_INDEX'])
@@ -481,8 +482,8 @@ SECRET_KEY\t{secret_key}
             screen_range=MAP_LOCATION['BATTLE_CLICK_AI_COMMANDER']
         )
         if self.adb.img_difference(
-                SCREEN_SHOOT_SAVE_PATH + "is_ai.png",
-                STORAGE_PATH + "BATTLE_CLICK_AI_COMMANDER_TRUE.png"
+                os.path.join(SCREEN_SHOOT_SAVE_PATH, "is_ai.png"),
+                os.path.join(STORAGE_PATH, "BATTLE_CLICK_AI_COMMANDER_TRUE.png")
         ) <= 0.8:
             self.shell_log.helper_text("代理指挥未设置，设置代理指挥")
             self.mouse_click(CLICK_LOCATION['BATTLE_CLICK_AI_COMMANDER'])
@@ -499,11 +500,11 @@ SECRET_KEY\t{secret_key}
         )
 
         self.__ocr_check(
-            SCREEN_SHOOT_SAVE_PATH + "strength.png",
-            SCREEN_SHOOT_SAVE_PATH + "1",
+            os.path.join(SCREEN_SHOOT_SAVE_PATH, "strength.png"),
+            os.path.join(SCREEN_SHOOT_SAVE_PATH, "1"),
             "--psm 7")
         with open(SCREEN_SHOOT_SAVE_PATH + "1.txt",
-                  'r', encoding="utf8") as f:
+                  'r') as f:
             tmp = f.read()  #
             try:
                 self.CURRENT_STRENGTH = int(tmp.split("/")[0])
@@ -523,12 +524,11 @@ SECRET_KEY\t{secret_key}
             screen_range=MAP_LOCATION['BATTLE_DEBUG_WHEN_OCR_ERROR']
         )
         if enable_ocr_debugger:
-            self.__ocr_check(SCREEN_SHOOT_SAVE_PATH + "debug.png",
-                             SCREEN_SHOOT_SAVE_PATH + "debug",
+            self.__ocr_check(os.path.join(SCREEN_SHOOT_SAVE_PATH, "debug.png"),
+                             os.path.join(SCREEN_SHOOT_SAVE_PATH, "debug"),
                              "--psm 7 -l chi_sim")
             end_text = "掉落"
-            f = open(SCREEN_SHOOT_SAVE_PATH +
-                     "debug.txt", 'r', encoding="utf8")
+            f = open(os.path.join(SCREEN_SHOOT_SAVE_PATH, "debug.txt"), 'r')
             tmp = f.readline()
             tmp = tmp.replace(' ', '')
             self.shell_log.debug_text("OCR 识别结果: {}".format(tmp))
@@ -542,8 +542,8 @@ SECRET_KEY\t{secret_key}
                 self.CURRENT_STRENGTH = -1 # CURRENT_STRENGTH = -1 代表需要需要回到主页重来
         else:
             if self.adb.img_difference(
-                    img1=SCREEN_SHOOT_SAVE_PATH + "debug.png",
-                    img2=STORAGE_PATH + "BATTLE_DEBUG_CHECK_LOCATION_IN_SUCAI.png"
+                    img1=os.path.join(SCREEN_SHOOT_SAVE_PATH, "debug.png"),
+                    img2=os.path.join(STORAGE_PATH, "BATTLE_DEBUG_CHECK_LOCATION_IN_SUCAI.png")
             ) > 0.75:
                 self.shell_log.helper_text("检测 BUG 成功，系统停留在素材页面，请求返回...")
                 self.adb.get_mouse_click(
@@ -562,11 +562,10 @@ SECRET_KEY\t{secret_key}
                 screen_range=MAP_LOCATION["BATTLE_INFO_STRENGTH_REMAIN"]
             )
 
-            self.__ocr_check(SCREEN_SHOOT_SAVE_PATH + "strength.png",
-                             SCREEN_SHOOT_SAVE_PATH + "1",
+            self.__ocr_check(os.path.join(SCREEN_SHOOT_SAVE_PATH, "strength.png"),
+                             os.path.join(SCREEN_SHOOT_SAVE_PATH, "1"),
                              "--psm 7")
-            with open(SCREEN_SHOOT_SAVE_PATH + "1.txt",
-                      'r', encoding="utf8") as f:
+            with open(os.path.join(SCREEN_SHOOT_SAVE_PATH, "1.txt"), 'r') as f:
                 tmp = f.read()  #
                 try:
                     self.CURRENT_STRENGTH = int(tmp.split("/")[0])
@@ -736,20 +735,19 @@ SECRET_KEY\t{secret_key}
                 save_name="task_status_1.png"
             )
             if enable_ocr_check_task:
-                self.__ocr_check(SCREEN_SHOOT_SAVE_PATH + "task_status_1.png",
-                                 SCREEN_SHOOT_SAVE_PATH + "1",
+                self.__ocr_check(os.path.join(SCREEN_SHOOT_SAVE_PATH, "task_status_1.png"),
+                                 os.path.join(SCREEN_SHOOT_SAVE_PATH, "1"),
                                  "--psm 7 -l chi_sim")
                 task_ok_text = "领取"
-                f = open(SCREEN_SHOOT_SAVE_PATH +
-                         "1.txt", "r", encoding="utf8")
+                f = open(os.path.join(SCREEN_SHOOT_SAVE_PATH, "1.txt"), "r")
                 tmp = f.readline()
                 tmp = tmp.replace(' ', '')
                 self.shell_log.debug_text("OCR 识别结果: {}".format(tmp))
                 task_ok_signal = task_ok_text in tmp
             else:
                 task_ok_signal = self.adb.img_difference(
-                    img1=SCREEN_SHOOT_SAVE_PATH + "task_status_1.png",
-                    img2=STORAGE_PATH + "TASK_COMPLETE.png"
+                    img1=os.path.join(SCREEN_SHOOT_SAVE_PATH, "task_status_1.png"),
+                    img2=os.path.join(STORAGE_PATH, "TASK_COMPLETE.png")
                 ) > .7
             if not task_ok_signal:  # 检查当前是否在获得物资页面
                 self.shell_log.debug_text("未检测到可领取奖励，检查是否在获得物资页面")
@@ -759,20 +757,19 @@ SECRET_KEY\t{secret_key}
                     save_name="task_status_2.png"
                 )
                 if enable_ocr_check_task:
-                    self.__ocr_check(SCREEN_SHOOT_SAVE_PATH + "task_status_2.png",
-                                     SCREEN_SHOOT_SAVE_PATH + "1",
+                    self.__ocr_check(os.path.join(SCREEN_SHOOT_SAVE_PATH, "task_status_2.png"),
+                                     os.path.join(SCREEN_SHOOT_SAVE_PATH, "1"),
                                      "--psm 7 -l chi_sim")
                     reward_text = "物资"
-                    f = open(SCREEN_SHOOT_SAVE_PATH + "1.txt",
-                             "r", encoding="utf8")
+                    f = open(os.path.join(SCREEN_SHOOT_SAVE_PATH, "1.txt"), "r")
                     tmp = f.readline()
                     tmp = tmp.replace(' ', '')
                     self.shell_log.debug_text("OCR 识别结果: {}".format(tmp))
                     task_ok_signal = reward_text in tmp
                 else:
                     task_ok_signal = self.adb.img_difference(
-                        img1=SCREEN_SHOOT_SAVE_PATH + "task_status_2.png",
-                        img2=STORAGE_PATH + "REWARD_GET.png"
+                        img1=os.path.join(SCREEN_SHOOT_SAVE_PATH, "task_status_2.png"),
+                        img2=os.path.join(STORAGE_PATH, "REWARD_GET.png")
                     ) > .7
             if task_ok_signal:
                 self.shell_log.debug_text("当前有可领取奖励")

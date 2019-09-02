@@ -20,10 +20,10 @@ class ADBShell(object):
         self.DEVICE_NAME = self.__adb_device_name_detector()
         if "win32" in os.sys.platform:
             self.__command = "\"" + self.ADB_ROOT + "\\adb.exe\" -s " + self.DEVICE_NAME + " {tools} {command} "
-            self.SCREEN_SHOOT_SAVE_PATH = os.path.abspath(SCREEN_SHOOT_SAVE_PATH) + "\\"
+            self.SCREEN_SHOOT_SAVE_PATH = os.path.abspath(SCREEN_SHOOT_SAVE_PATH)
         else:
             self.__command = self.ADB_ROOT + "/adb -s "+ self.DEVICE_NAME + " {tools} {command} "
-            self.SCREEN_SHOOT_SAVE_PATH = os.path.abspath(SCREEN_SHOOT_SAVE_PATH) + "/"
+            self.SCREEN_SHOOT_SAVE_PATH = os.path.abspath(SCREEN_SHOOT_SAVE_PATH)
 
     def __adb_device_name_detector(self):
         if "win32" in os.sys.platform:
@@ -135,7 +135,7 @@ class ADBShell(object):
     def get_sub_screen(self, file_name, screen_range, save_name=None):
         if save_name is None:
             save_name = file_name
-        i = Image.open(self.SCREEN_SHOOT_SAVE_PATH + file_name)
+        i = Image.open(os.path.join(self.SCREEN_SHOOT_SAVE_PATH, file_name))
         i.crop(
             (
                 screen_range[0][0],
@@ -143,7 +143,7 @@ class ADBShell(object):
                 screen_range[0][0] + screen_range[1][0],
                 screen_range[0][1] + screen_range[1][1]
             )
-        ).save(self.SCREEN_SHOOT_SAVE_PATH + save_name)
+        ).save(os.path.join(self.SCREEN_SHOOT_SAVE_PATH, save_name))
 
     def get_screen_shoot(self, file_name="1.png", screen_range=None):
         sleep(1)
@@ -154,7 +154,7 @@ class ADBShell(object):
         self.run_cmd(1)
         self.__adb_tools = "pull"
         self.__adb_command = "/sdcard/screenshot.png \"{}\"".format(
-            self.SCREEN_SHOOT_SAVE_PATH + file_name)
+            os.path.join(self.SCREEN_SHOOT_SAVE_PATH, file_name))
         self.run_cmd(1)
         self.__adb_tools = "shell"
         self.__adb_command = "rm /sdcard/screenshot.png"
@@ -195,13 +195,13 @@ class ADBShell(object):
     def mv_file(self, file_name, file_path="/sdcard/", RM=False):
         self.__adb_tools = "pull"
         self.__adb_command = "{} {}".format(
-            file_path + file_name,
-            SCREEN_SHOOT_SAVE_PATH + file_name
+            os.path.join(file_path, file_name),
+            os.path.join(SCREEN_SHOOT_SAVE_PATH, file_name)
         )
         self.run_cmd(DEBUG_LEVEL=0)
         if RM:
             self.__adb_tools = "shell"
-            self.__adb_command = "rm {}".format(file_path + file_name)
+            self.__adb_command = "rm {}".format(os.path.join(file_path, file_name))
 
     @staticmethod
     def img_difference(img1, img2):
